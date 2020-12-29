@@ -372,3 +372,99 @@ export let reqgoodsCount=()=>{
         url:baseUrl+"/api/goodscount"
     })
 }
+
+
+/************商品分类管理 start**************************/
+
+//添加 user={img:File,catename:"12",pid:1}
+export let reqbannerAdd = (user) => {
+    return axios({
+        url: baseUrl + "/api/banneradd",
+        method: "post",
+        data: dataToFormData(user)
+    })
+}
+
+//列表 p={istree:true} {pid:1}
+export let reqbannerlist = (p) => {
+    return axios({
+        url: baseUrl + "/api/bannerlist",
+        params:p
+    })
+}
+
+//详情 user={id:1}
+export let reqbannerDetail = (user) => {
+    return axios({
+        url: baseUrl + "/api/bannerinfo",
+        method: "get",
+        params: user
+    })
+}
+
+//修改 user={id:"必填",img:file,catename:""}
+export let reqbannerUpdate = (user) => {
+    return axios({
+        url: baseUrl + "/api/banneredit",
+        method: "post",
+        data: dataToFormData(user)
+    })
+}
+
+//删除 user={id:1}
+export let reqbannerDel = (user) => {
+    return axios({
+        url: baseUrl + "/api/bannerdelete",
+        method: "post",
+        data: qs.stringify(user)
+    })
+}
+
+
+/************商品秒杀管理 start**************************/
+
+//添加 
+export let reqseckAdd = (user) => {
+    return axios({
+        url: baseUrl + "/api/seckadd",
+        method: "post",
+        data: qs.stringify(user)
+    })
+}
+
+//列表 
+export let reqsecklist = (obj) => {
+    return axios({
+        url: baseUrl + "/api/secklist",
+        params:obj
+    })
+}
+
+//详情 user={id:1}
+export let reqseckDetail = (user) => {
+    return axios({
+        url: baseUrl + "/api/seckinfo",
+        method: "get",
+        params: user
+    })
+}
+
+//修改 
+export let reqseckUpdate = (user) => {
+    return axios({
+        url: baseUrl + "/api/seckedit",
+        method: "post",
+        data: qs.stringify(user)
+    })
+}
+
+//删除 user={id:1}
+export let reqseckDel = (user) => {
+    return axios({
+        url: baseUrl + "/api/seckdelete",
+        method: "post",
+        data: qs.stringify(user)
+    })
+}
+
+

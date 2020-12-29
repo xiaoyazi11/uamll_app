@@ -32,8 +32,9 @@ let getters={
     }
 }
 let actions={
-     reqList(context){
-         reqspecslist({page:context.state.page,size:context.state.size}).then(res=>{
+     reqList(context,bool){
+        let params=bool?{}:{page:context.state.page,size:context.state.size}
+         reqspecslist(params).then(res=>{
              if(res.data.code==200){
                 if(res.data.list.length===0&&context.state.page>1){
                     context.commit("changePage",context.state.page-1)

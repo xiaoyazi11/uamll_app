@@ -5,7 +5,7 @@
       :visible.sync="info.isshow"
       @closed="cancel"
       @opened="opened"
-    >
+     >
       <!-- 2.v-model绑定user -->
       <el-form :model="user">
         <div>user:{{user}}</div>
@@ -132,15 +132,19 @@ export default {
   computed: {
     ...mapGetters({
       list: "goods/list",
-      specsList: "specs/list"
+      specsList: "specs/list",
     })
   },
   methods: {
     ...mapActions({
       reqList: "goods/reqList",
-      reqSpecsList: "specs/reqList"
+      reqSpecsList: "specs/reqList",
+      reqTotal: "goods/reqTotal"
     }),
     cancel() {
+      if(!this.info.isadd){
+        this.empty()
+      }
       this.info.isshow = false;
     },
     //11.清空
@@ -164,7 +168,6 @@ export default {
       this.secondCateList = [];
       // 规格属性展示的所有选项的列表
       this.showSpecsAttr = [];
-      this.cateList=[];
     },
     changeFirstCateId() {
       this.user.second_cateid = "";
@@ -194,27 +197,54 @@ export default {
         specsattr: JSON.stringify(this.user.specsattr)
       };
       reqgoodsAdd(data).then(res => {
-             if(res.data.code==200){
-                 this.cancel();
-                 this.empty();
-                 successalert(res.data.msg)
-                 this.reqList()
-            }
+        if (res.data.code == 200) {
+          this.cancel();
+          this.empty();
+          successalert(res.data.msg);
+          this.reqList();
+          this.reqTotal()
+        }
       });
     },
-    update() {},
+    update() {
+      this.user.description = this.editor.txt.html();
+      let data = {
+        ...this.user,
+        specsattr: JSON.stringify(this.user.specsattr)
+      };
+
+      reqgoodsUpdate(data).then(res => {
+        if (res.data.code == 200) {
+          this.cancel();
+          this.empty();
+          successalert(res.data.msg);
+          this.reqList();
+          this.reqTotal()
+        }
+      });
+    },
+    getone(id) {
+      reqgoodsDetail({ id: id }).then(res => {
+        if (res.data.code == 200) {
+          this.user = res.data.list;
+          console.log(this.user);
+          this.getSecondList();
+          this.imgUrl = this.$pre + this.user.img;
+          this.getShowSpecsAttr();
+          this.user.specsattr = JSON.parse(this.user.specsattr);
+          this.user.id = id;
+          //将user.desctiption赋值给富文本编辑器
+          if (this.editor) {
+            this.editor.txt.html(this.user.description);
+          }
+        }
+      });
+    },
     changeImg(e) {
       let file = e.target.files[0];
       //判断 略
       this.imgUrl = URL.createObjectURL(file);
       this.user.img = file;
-    },
-    init() {
-      reqcatelist({ istree: true }).then(res => {
-        if (res.data.code == 200) {
-          this.cateList = res.data.list;
-        }
-      });
     },
     opened() {
       //创建编辑器
@@ -226,9 +256,12 @@ export default {
   },
   mounted() {
     if (this.cateList.length === 0) {
-      this.init();
+      reqcatelist({ istree: true }).then(res => {
+        if (res.data.code == 200) {
+          this.cateList = res.data.list;
+        }
+      });
     }
-
     //7.3 请求规格list
     this.reqSpecsList(true);
   }

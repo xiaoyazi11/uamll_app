@@ -16,7 +16,7 @@
       </el-table-column>
       <el-table-column label="市场价格" sortable>
         <template slot-scope="scope">
-          <div>{{scope.row.market_price}}</div>nm
+          <div>{{scope.row.market_price}}</div>
         </template>
       </el-table-column>
       <el-table-column label="图片">
@@ -49,30 +49,55 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      background
+      layout="prev, pager, next"
+      :total="total"
+      :page-size="size"
+      @current-change="changePage"
+    ></el-pagination>
   </div>
 </template>
 
 <script>
-import {mapGetters,mapActions} from "vuex"
+import { mapGetters, mapActions } from "vuex";
+import { reqgoodsDel } from "../../../utils/http";
+import { successalert } from "../../../utils/alert";
 export default {
-    data(){
-        return{
-
+  data() {
+    return {};
+  },
+  computed: {
+    ...mapGetters({
+      list: "goods/list",
+      total: "goods/total",
+      //一页的数量
+      size: "goods/size"
+    })
+  },
+  methods: {
+    ...mapActions({
+      reqList: "goods/reqList",
+      reqTotal: "goods/reqTotal",
+      changePage: "goods/changePage"
+    }),
+    del(id) {
+      reqgoodsDel({ id: id }).then(res => {
+        if (res.data.code == 200) {
+          successalert(res.data.msg);
+          this.reqList();
+          this.reqTotal();
         }
+      });
     },
-    computed:{
-        ...mapGetters({
-            list:"goods/list"
-        })
-    },
-    methods:{
-        ...mapActions({
-            reqList:"goods/reqList"
-        })
-    },
-    mounted(){
-        this.reqList()
+    edit(id) {
+      this.$emit("edit", id);
     }
+  },
+  mounted() {
+    this.reqList();
+    this.reqTotal();
+  }
 };
 </script>
 
@@ -80,7 +105,7 @@ export default {
 .list {
   padding-top: 10px;
 }
-img{
+img {
   width: 80px;
   height: 80px;
 }
