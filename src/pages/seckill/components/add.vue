@@ -79,7 +79,7 @@ import {
   reqseckUpdate,
   reqseckDetail
 } from "../../../utils/http";
-import { successalert } from "../../../utils/alert";
+import { successalert, erroralert } from "../../../utils/alert";
 // 时间戳
 let date = new Date();
 console.log(date, date.getTime());
@@ -112,7 +112,7 @@ export default {
       secondCateList: [],
       //   三级分类
       thirdGoodsList: [],
-      cateList:[]
+      cateList: []
     };
   },
   methods: {
@@ -175,25 +175,59 @@ export default {
         status: 1
       };
       //   日期时间
-      (this.time = [time, "00:00:00"]),
-        (this.dateTime = ""),
+      this.time = [time, "00:00:00"],
+        this.dateTime = "",
         //   二级分类
-        (this.secondCateList = []),
+        this.secondCateList = [],
         //   三级分类
-        (this.thirdGoodsList = []);
+        this.thirdGoodsList = [];
+    },
+    checkProps() {
+      return new Promise(resolve => {
+        if (this.user.title === "") {
+          erroralert("活动名称不能为空");
+          return;
+        }
+
+        if (this.user.begintime === "") {
+          erroralert("开始时间不能为空");
+          return;
+        }
+        if (this.user.endtime === "") {
+          erroralert("结束时间不能为空");
+          return;
+        }
+
+        if (this.user.first_cateid === "") {
+          erroralert("一级分类不能为空");
+          return;
+        }
+
+        if (this.user.second_cateid === "") {
+          erroralert("二级分类不能为空");
+          return;
+        }
+        if (this.user.goodsid === "") {
+          erroralert("商品不能为空");
+          return;
+        }
+        resolve();
+      });
     },
     // 添加
     add() {
-      reqseckAdd(this.user).then(res => {
-        if (res.data.code == 200) {
-          successalert(res.data.msg);
-          // 关弹框
-          this.cancel();
-          // 清数据
-          this.empty();
-          // 刷新页面
-          this.reqList();
-        }
+      this.checkProps().then(() => {
+        reqseckAdd(this.user).then(res => {
+          if (res.data.code == 200) {
+            successalert(res.data.msg);
+            // 关弹框
+            this.cancel();
+            // 清数据
+            this.empty();
+            // 刷新页面
+            this.reqList();
+          }
+        });
       });
     },
     // 编辑
@@ -213,7 +247,8 @@ export default {
     },
     // 修改
     update() {
-      reqseckUpdate(this.user).then(res => {
+      this.checkProps().then(()=>{
+          reqseckUpdate(this.user).then(res => {
         if (res.data.code == 200) {
           successalert(res.data.msg);
           this.cancel();
@@ -221,9 +256,11 @@ export default {
           this.reqList();
         }
       });
+      })
+    
     }
   },
-   mounted() {
+  mounted() {
     if (this.cateList.length === 0) {
       reqcatelist({ istree: true }).then(res => {
         if (res.data.code == 200) {

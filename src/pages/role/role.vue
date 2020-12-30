@@ -29,6 +29,7 @@ export default {
   methods: {
     Matadd() {
       this.info.isshow = true;
+       this.info.isadd = true;
     },
     edit(id) {
       //弹框出现

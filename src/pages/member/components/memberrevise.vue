@@ -1,7 +1,8 @@
 <template>
   <div>
-      <el-dialog title="会员编辑" :visible.sync="info.isshow" @closed="cancel">
+    <el-dialog title="会员编辑" :visible.sync="info.isshow" @closed="cancel">
       <el-form :model="user">
+        {{user}}
         <el-form-item label="手机号" label-width="100px">
           <el-input v-model="user.phone" autocomplete="off"></el-input>
         </el-form-item>
@@ -23,47 +24,60 @@
 </template>
 
 <script>
-import {reqMemberDeitl,reqMemberRevise} from "../../../utils/http"
-import { successalert } from "../../../utils/alert";
+import { reqMemberDeitl, reqMemberRevise } from "../../../utils/http";
+import { successalert, erroralert } from "../../../utils/alert";
 export default {
-    props:["list","info"],
-    data(){
-        return{
-            user:{
-                uid:"",
-                nickname:"",
-                phone:"",
-                password:"",
-                status:1
-            }
-        }
+  props: ["list", "info"],
+  data() {
+    return {
+      user: {
+        uid: "",
+        nickname: "",
+        phone: "",
+        password: "",
+        status: 1
+      }
+    };
+  },
+  methods: {
+    cancel() {
+      this.info.isshow = false;
     },
-    methods:{
-       cancel(){
-           this.info.isshow=false
-       },
-       getone(uid){
-           reqMemberDeitl({uid:uid}).then(res=>{
-               if(res.data.code==200){
-                   this.user=res.data.list
-                  this.user.uid = uid
-               }
-           })  
-       },
-       update(){
-        reqMemberRevise(this.user).then(res=>{
-            if(res.data.code==200){
-               successalert(res.data.msg)
-               this.cancel()
-                this.$emit("init")
-            }
-        })
-       } 
-  
+    getone(uid) {
+      reqMemberDeitl({ uid: uid }).then(res => {
+        if (res.data.code == 200) {
+          this.user = res.data.list;
+          this.user.uid = uid;
+        }
+      });
+    },
+    checkProps() {
+      return new Promise(resolve => {
+        if (this.user.nickname === "") {
+          erroralert("昵称不能为空");
+          return;
+        }
+        if (this.user.phone === "") {
+          erroralert("手机号不能为空");
+          return;
+        }
+        resolve();
+      });
+    },
+    update() {
+      this.checkProps().then(() => {
+        reqMemberRevise(this.user).then(res => {
+          if (res.data.code == 200) {
+            successalert(res.data.msg);
+            this.cancel();
+            this.$emit("init");
+          }
+        });
+      });
     }
-}
+  }
+};
 </script>
 
 <style>
-
 </style>

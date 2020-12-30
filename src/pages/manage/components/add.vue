@@ -1,7 +1,8 @@
 <template>
   <div>
-    <el-dialog :title="info.isadd?'管理添加':'管理编辑'" :visible.sync="info.isshow">
+    <el-dialog :title="info.isadd?'管理添加':'管理编辑'" :visible.sync="info.isshow" @close="cancel">
       <el-form :model="user">
+        {{user}}
         <el-form-item label="所属角色" label-width="100px">
           <el-select v-model="user.roleid">
             <el-option :value="0" label="请选择" disabled></el-option>
@@ -39,9 +40,9 @@ import {
   reqManageInfo,
   reqManageUpate
 } from "../../../utils/http";
-import { successalert } from "../../../utils/alert";
+import { successalert,erroralert } from "../../../utils/alert";
 export default {
-  props: ["info","list"],
+  props: ["info", "list"],
   data() {
     return {
       user: {
@@ -55,8 +56,10 @@ export default {
   },
   methods: {
     cancel() {
+      if (!this.info.isadd) {
+        this.emity();
+      }
       this.info.isshow = false;
-      this.info.isadd = false;
     },
     emity() {
       this.user = {
@@ -66,15 +69,34 @@ export default {
         status: 1
       };
     },
-    add() {
-      reqManageAdd(this.user).then(res => {
-        console.log("add");
-        if (res.data.code == 200) {
-          successalert(res.data.msg);
-          this.cancel();
-          this.emity();
-          this.$emit("init");
+    checkProps() {
+      return new Promise(resolve => {
+        if (this.user.roleid === "") {
+          erroralert("所属角色不能为空");
+          return;
         }
+        if (this.user.username === "") {
+          erroralert("用户名不能为空");
+          return;
+        }
+        if (this.user.password === "") {
+          erroralert("密码不能为空");
+          return;
+        }
+        resolve();
+      });
+    },
+    add() {
+      this.checkProps().then(() => {
+        reqManageAdd(this.user).then(res => {
+          console.log("add");
+          if (res.data.code == 200) {
+            successalert(res.data.msg);
+            this.cancel();
+            this.emity();
+            this.$emit("init");
+          }
+        });
       });
     },
     getone(id) {
@@ -86,6 +108,7 @@ export default {
       });
     },
     upate() {
+      this.checkProps().then(()=>{
       reqManageUpate(this.user).then(res => {
         if (res.data.code == 200) {
           successalert(res.data.msg);
@@ -96,6 +119,7 @@ export default {
           this.$emit("init");
         }
       });
+      })
     }
   },
   mounted() {

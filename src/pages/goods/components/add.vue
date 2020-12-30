@@ -5,7 +5,7 @@
       :visible.sync="info.isshow"
       @closed="cancel"
       @opened="opened"
-     >
+    >
       <!-- 2.v-model绑定user -->
       <el-form :model="user">
         <div>user:{{user}}</div>
@@ -101,7 +101,7 @@ import {
   reqgoodsDetail,
   reqgoodsUpdate
 } from "../../../utils/http";
-import { successalert } from "../../../utils/alert";
+import { successalert, erroralert } from "../../../utils/alert";
 export default {
   props: ["info"],
   data() {
@@ -132,7 +132,7 @@ export default {
   computed: {
     ...mapGetters({
       list: "goods/list",
-      specsList: "specs/list",
+      specsList: "specs/list"
     })
   },
   methods: {
@@ -142,8 +142,8 @@ export default {
       reqTotal: "goods/reqTotal"
     }),
     cancel() {
-      if(!this.info.isadd){
-        this.empty()
+      if (!this.info.isadd) {
+        this.empty();
       }
       this.info.isshow = false;
     },
@@ -190,37 +190,88 @@ export default {
       let obj = this.specsList.find(item => item.id == this.user.specsid);
       this.showSpecsAttr = obj ? obj.attrs : [];
     },
-    add() {
-      this.user.description = this.editor.txt.html();
-      let data = {
-        ...this.user,
-        specsattr: JSON.stringify(this.user.specsattr)
-      };
-      reqgoodsAdd(data).then(res => {
-        if (res.data.code == 200) {
-          this.cancel();
-          this.empty();
-          successalert(res.data.msg);
-          this.reqList();
-          this.reqTotal()
+    //封装的验证
+    checkProps() {
+      return new Promise(resolve => {
+        if (this.user.first_cateid === "") {
+          erroralert("一级分类不能为空");
+          return;
         }
+
+        if (this.user.second_cateid === "") {
+          erroralert("二级分类不能为空");
+          return;
+        }
+        if (this.user.goodsname === "") {
+          erroralert("商品名称不能为空");
+          return;
+        }
+
+        if (this.user.price === "") {
+          erroralert("商品价格不能为空");
+          return;
+        }
+
+        if (this.user.market_price === "") {
+          erroralert("商品市场价格不能为空");
+          return;
+        }
+
+        if (!this.user.img) {
+          erroralert("请上传图片");
+          return;
+        }
+        if (this.user.specsid === "") {
+          erroralert("商品规格不能为空");
+          return;
+        }
+
+        if (this.user.specsattr.length === 0) {
+          erroralert("请选择规格属性");
+          return;
+        }
+        if (this.editor.txt.html() == "") {
+          erroralert("请输入商品描述");
+          return;
+        }
+        resolve();
+      });
+    },
+    add() {
+      this.checkProps().then(() => {
+        this.user.description = this.editor.txt.html();
+        let data = {
+          ...this.user,
+          specsattr: JSON.stringify(this.user.specsattr)
+        };
+        reqgoodsAdd(data).then(res => {
+          if (res.data.code == 200) {
+            this.cancel();
+            this.empty();
+            successalert(res.data.msg);
+            this.reqList();
+            this.reqTotal();
+          }
+        });
       });
     },
     update() {
-      this.user.description = this.editor.txt.html();
-      let data = {
-        ...this.user,
-        specsattr: JSON.stringify(this.user.specsattr)
-      };
+      this.checkProps().then(() => {
+        this.user.description = this.editor.txt.html();
+        let data = {
+          ...this.user,
+          specsattr: JSON.stringify(this.user.specsattr)
+        };
 
-      reqgoodsUpdate(data).then(res => {
-        if (res.data.code == 200) {
-          this.cancel();
-          this.empty();
-          successalert(res.data.msg);
-          this.reqList();
-          this.reqTotal()
-        }
+        reqgoodsUpdate(data).then(res => {
+          if (res.data.code == 200) {
+            this.cancel();
+            this.empty();
+            successalert(res.data.msg);
+            this.reqList();
+            this.reqTotal();
+          }
+        });
       });
     },
     getone(id) {

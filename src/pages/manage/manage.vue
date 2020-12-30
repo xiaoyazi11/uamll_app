@@ -49,7 +49,6 @@ export default {
       reqManageCount().then(res => {
         if (res.data.code == 200) {
           this.total = res.data.list[0].total;
-          console.log(this.total);
         }
       });
     },

@@ -1,7 +1,9 @@
 import Vue from "vue"
 import axios from "axios"
 import qs from "qs"
-import {erroralert} from "./alert"
+import { erroralert } from "./alert"
+import store from "../store"
+import router from "../router"
 // 开发环境
 
 let baseUrl="/api"
@@ -11,7 +13,13 @@ Vue.prototype.$pre="http://localhost:3000"
 // let baseUrl=""
 // Vue.prototype.$pre=""
 
-
+//请求拦截:设置请求头
+axios.interceptors.request.use(config=>{
+    if(config.url!==baseUrl+"/api/userlogin"){
+        config.headers.authorization=store.state.userInfo.token
+    }
+    return config
+})
 
 //响应拦截
 axios.interceptors.response.use(res=>{
@@ -25,6 +33,12 @@ axios.interceptors.response.use(res=>{
     if(!res.data.list){
         res.data.list=[]
     }
+    if(res.data.msg==="登录已过期或访问权限受限"){
+        //清除用户登录的信息 userInfo
+        store.dispatch("changeUser",{})
+        //跳到登录页面
+        router.push("/login")
+    }
     return res
 })
 
@@ -35,6 +49,15 @@ function dataToFormData(user){
         data.append(i,user[i])
     }
     return data
+}
+
+//登录
+export let reqLogin = (user) => {
+    return axios({
+        url: baseUrl + "/api/userlogin",
+        method: "post",
+        data: qs.stringify(user)
+    })
 }
 
 // 菜单

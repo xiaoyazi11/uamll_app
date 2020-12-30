@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <el-dialog :title="info.isadd?'管理添加':'管理编辑'" :visible.sync="info.isshow">
-      {{user}}
+  <div class="form">
+    <el-dialog :title="info.isadd?'管理添加':'管理编辑'" :visible.sync="info.isshow" @close="cancel">
       <el-form :model="user">
+        {{user}}
         <el-form-item label="标题" label-width="100px">
           <el-input v-model="user.title" autocomplete="off"></el-input>
         </el-form-item>
@@ -32,8 +32,12 @@
 </template>
 
 <script>
-import { successalert } from "../../../utils/alert";
-import { reqbannerAdd, reqbannerDetail,reqbannerUpdate } from "../../../utils/http";
+import { successalert, erroralert } from "../../../utils/alert";
+import {
+  reqbannerAdd,
+  reqbannerDetail,
+  reqbannerUpdate
+} from "../../../utils/http";
 export default {
   props: ["info", "list"],
   data() {
@@ -49,9 +53,10 @@ export default {
   },
   methods: {
     cancel() {
+      if (!this.info.isadd) {
+        this.empty();
+      }
       this.info.isshow = false;
-      this.info.isadd = false;
-      this.empty();
     },
     empty() {
       this.imgUrl = "";
@@ -62,14 +67,29 @@ export default {
         status: 1
       };
     },
-    add() {
-      reqbannerAdd(this.user).then(res => {
-        if (res.data.code == 200) {
-          successalert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.$emit("init");
+    checkProps() {
+      return new Promise(resolve => {
+        if (this.user.title === "") {
+          erroralert("标题不能为空");
+          return;
         }
+        if (!this.user.img) {
+          erroralert("请添加图片");
+          return;
+        }
+        resolve();
+      });
+    },
+    add() {
+      this.checkProps().then(() => {
+        reqbannerAdd(this.user).then(res => {
+          if (res.data.code == 200) {
+            successalert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.$emit("init");
+          }
+        });
       });
     },
     changeImg2(e) {
@@ -90,17 +110,19 @@ export default {
       });
     },
     update() {
-      reqbannerUpdate(this.user).then(res => {
-        if (res.data.code == 200) {
-          //弹成功
-          successalert(res.data.msg);
-          //弹框消失
-          this.cancel();
-          //数据清空
-          this.empty();
-          //刷新list
-          this.$emit("init");
-        }
+      this.checkProps().then(() => {
+        reqbannerUpdate(this.user).then(res => {
+          if (res.data.code == 200) {
+            //弹成功
+            successalert(res.data.msg);
+            //弹框消失
+            this.cancel();
+            //数据清空
+            this.empty();
+            //刷新list
+            this.$emit("init");
+          }
+        });
       });
     }
   }
