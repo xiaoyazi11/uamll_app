@@ -75,7 +75,9 @@ export default {
       this.$router.replace("/login");
     }
   },
-  mounted() {}
+  mounted() {
+    console.log(this.userInfo);
+  }
 };
 </script>
 

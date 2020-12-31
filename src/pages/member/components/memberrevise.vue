@@ -47,7 +47,7 @@ export default {
       reqMemberDeitl({ uid: uid }).then(res => {
         if (res.data.code == 200) {
           this.user = res.data.list;
-          this.user.uid = uid;
+          this.user.uid = uid
         }
       });
     },
@@ -59,6 +59,10 @@ export default {
         }
         if (this.user.phone === "") {
           erroralert("手机号不能为空");
+          return;
+        }
+        if (this.user.password === "") {
+          erroralert("密码不能为空");
           return;
         }
         resolve();

@@ -49,6 +49,7 @@ export default {
     login() {
       reqLogin(this.user).then(res => {
         if (res.data.code === 200) {
+          console.log(res.data.list);
           //如果登录成功了，将用户的信息存入store
           this.changeUser(res.data.list);
           //跳转页面
